@@ -44,7 +44,6 @@ impl<I: Iterator + Clone> PeekingIter<I> {
     ///
     /// ```rust
     /// # use peeking_iter::PeekingIter;
-    ///
     /// let mut it = PeekingIter::new(0..=2);
     ///
     /// assert_eq!(it.next(), Some(0));
@@ -83,7 +82,6 @@ impl<I: Iterator + Clone> PeekingIter<I> {
     ///
     /// ```rust
     /// # use peeking_iter::PeekingIter;
-    ///
     /// let mut it = PeekingIter::new(0..=2);
     ///
     /// assert_eq!(it.peek(), Some(0));
@@ -102,7 +100,6 @@ impl<I: Iterator + Clone> PeekingIter<I> {
     ///
     /// ```rust
     /// # use peeking_iter::PeekingIter;
-    ///
     /// let mut it = PeekingIter::new(0..=3);
     ///
     /// assert_eq!(it.next_while(|x| *x < 2), vec![0, 1]);
