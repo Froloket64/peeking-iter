@@ -1,6 +1,6 @@
 use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
 use itertools::Itertools;
-use peeking_bench::PeekingIter;
+use peeking_iter::PeekingIter;
 
 fn peeking(c: &mut Criterion) {
     let mut group = c.benchmark_group("Peeking");
