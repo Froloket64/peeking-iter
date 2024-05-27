@@ -141,9 +141,16 @@ impl<I: Iterator + Clone> PeekingIter<I> {
         result
     }
 
-    /// Returns the inner (base) iterator.
-    pub fn into_inner(self) -> I {
-        self.iter
+    /// Consumes `self` and returns the inner (base) iterator.
+    ///
+    /// ```rust
+    /// # use peeking_iter::PeekingIter;
+    /// let mut it = PeekingIter::new(0..=2);
+    ///
+    /// assert_eq!(PeekingIter::into_inner(it), 0..=2);
+    /// ```
+    pub fn into_inner(value: Self) -> I {
+        value.iter
     }
 }
 
