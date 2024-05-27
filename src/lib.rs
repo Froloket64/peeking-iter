@@ -57,11 +57,24 @@ impl<I: Iterator + Clone> PeekingIter<I> {
         self.peeking.get_or_insert_with(|| self.iter.clone()).next()
     }
 
+    /// Peek the `n`th value in the iterator.
+    ///
+    /// ```rust
+    /// # use peeking_iter::PeekingIter;
+    /// let mut it = PeekingIter::new(0..=2);
+    ///
+    /// assert_eq!(it.peek_nth(2), Some(2));
+    /// assert_eq!(it.next(), Some(0));
+    /// ```
+    pub fn peek_nth(&mut self, n: usize) -> Option<I::Item> {
+        n.checked_add(1)
+            .and_then(|n1| (0..n1).flat_map(|_| self.peek()).last())
+    }
+
     /// Advances the base iterator to the be aligned with the peeking one.
     ///
     /// ```rust
     /// # use peeking_iter::PeekingIter;
-    ///
     /// let mut it = PeekingIter::new(0..=2);
     ///
     /// assert_eq!(it.peek(), Some(0));
