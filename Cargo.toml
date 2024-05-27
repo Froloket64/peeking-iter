@@ -1,0 +1,19 @@
+[package]
+name = "peeking-iter"
+version = "0.1.0"
+license = "MIT"
+description = "An iterator adapter that allows infinitely-deep peeking"
+repository = "https://github.com/Froloket64/peeking-iter"
+edition = "2021"
+keywords = [ "iterator", "peek", "multipeek" ]
+categories = [ "rust-patterns" ]
+
+[[bench]]
+name = "bench"
+harness = false
+
+[dependencies]
+
+[dev-dependencies]
+criterion = "0.5.1"
+itertools = "0.13.0"
