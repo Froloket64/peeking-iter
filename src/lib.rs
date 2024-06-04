@@ -105,7 +105,7 @@ impl<I: Iterator + Clone> PeekingIter<I> {
     /// assert_eq!(it.peek(), Some(0));
     /// ```
     pub fn rewind_peeking(&mut self) {
-        self.peeking = Some(self.iter.clone())
+        self.peeking = None;
     }
 
     /// Returns a `Vec<I::Item>` containing all continuous elements that the
@@ -121,6 +121,9 @@ impl<I: Iterator + Clone> PeekingIter<I> {
     /// ```
     pub fn next_while<F: Fn(&I::Item) -> bool>(&mut self, pred: F) -> Vec<I::Item> {
         let mut result = vec![];
+
+        // If `peeking` had already diverged, bring it back
+        self.rewind_peeking();
 
         loop {
             match self.peek() {
