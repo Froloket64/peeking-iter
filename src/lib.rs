@@ -144,6 +144,40 @@ impl<I: Iterator + Clone> PeekingIter<I> {
         result
     }
 
+    /// Like [`next_while()`](Self::next_while()), except consumes the first
+    /// element that doesn't suffice (without returning it).
+    ///
+    /// Doesn't [`peek()`](Self::peek()) at all, so it is faster than
+    /// [`next_while()`](Self::next_while()).
+    ///
+    /// ```rust
+    /// # use peeking_iter::PeekingIter;
+    /// let mut it = PeekingIter::new(0..=3);
+    ///
+    /// assert_eq!(it.next_while1(|x| *x < 2), vec![0, 1]);
+    /// assert_eq!(it.peek(), Some(3));
+    /// assert_eq!(it.next(), Some(3));
+    /// ```
+    /// Note the `Some(3)`, instead of `Some(2)`.
+    pub fn next_while1<F: Fn(&I::Item) -> bool>(&mut self, pred: F) -> Vec<I::Item> {
+        let mut result = vec![];
+
+        loop {
+            match self.next() {
+                None => break,
+                Some(x) => {
+                    if pred(&x) {
+                        result.push(x)
+                    } else {
+                        break;
+                    }
+                }
+            }
+        }
+
+        result
+    }
+
     /// Consumes `self` and returns the inner (base) iterator.
     ///
     /// ```rust
