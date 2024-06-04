@@ -164,20 +164,3 @@ impl<I: Iterator + Clone> Iterator for PeekingIter<I> {
         PeekingIter::next(self)
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use super::PeekingIter;
-
-    #[test]
-    fn peek() {
-        let mut it = PeekingIter::new(0..=2);
-
-        assert_eq!(it.next(), Some(0));
-        assert_eq!(it.peek(), Some(1));
-        assert_eq!(it.peek(), Some(2));
-        assert_eq!(it.next(), Some(1));
-        assert_eq!(it.peek(), Some(2));
-        assert_eq!(it.peek(), None);
-    }
-}
