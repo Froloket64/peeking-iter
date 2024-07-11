@@ -1,6 +1,6 @@
 [package]
 name = "peeking-iter"
-version = "0.1.2"
+version = "0.2.0"
 license = "MIT"
 description = "An iterator adapter that allows infinitely-deep peeking"
 repository = "https://github.com/Froloket64/peeking-iter"
