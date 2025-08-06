@@ -6,8 +6,8 @@
 /// The inner iterator is required to implement [`Clone`].
 ///
 /// # Performance
-/// It you don't call [`peek()`] at all, this is just as performant as
-/// the original iterator.
+/// It you don't call [`peek()`] at all, this is just as performant as the
+/// original iterator.
 ///
 /// This adapter is ~1.5x faster than [`itertools::MultiPeek`] (see
 /// `/benches/bench.rs`).
@@ -15,7 +15,7 @@
 /// [`peek()`]: PeekingIter::peek()
 /// [`itertools::MultiPeek`]:
 /// https://docs.rs/itertools/latest/itertools/structs/struct.MultiPeek.html
-pub struct PeekingIter<I: Iterator> {
+pub struct PeekingIter<I> {
     iter: I,
     peeking: Option<I>,
 }
@@ -196,5 +196,17 @@ impl<I: Iterator + Clone> Iterator for PeekingIter<I> {
 
     fn next(&mut self) -> Option<Self::Item> {
         PeekingIter::next(self)
+    }
+}
+
+/// Allows converting any iterator to a peeking one (typically by wrapping around it).
+pub trait ToPeeking
+where Self: Sized {
+    fn to_peeking(self) -> PeekingIter<Self>;
+}
+
+impl<I: Iterator + Clone> ToPeeking for I {
+    fn to_peeking(self) -> PeekingIter<Self> {
+        PeekingIter::new(self)
     }
 }
