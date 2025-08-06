@@ -1,7 +1,7 @@
 /// Iterator adapter that enables infinitely-deep peeking.
 ///
 /// First call to [`peek()`] returns the next element, further calls
-/// return further elements without advancing the base iterator.
+/// return further elements without advancing the inner iterator.
 ///
 /// The inner iterator is required to implement [`Clone`].
 ///
@@ -9,10 +9,15 @@
 /// It you don't call [`peek()`] at all, this is just as performant as the
 /// original iterator.
 ///
-/// This adapter is ~1.5x faster than [`itertools::MultiPeek`] (see
-/// `/benches/bench.rs`).
+/// When using [`peek()`], this adapter is ~1.5x faster than
+/// [`itertools::MultiPeek`] (see `/benches/bench.rs`).
+///
+/// All operations are `O(1)`, unless they specifically iterate over multiple
+/// elements (e.g. [`peek_nth()`], [`next_while()`], etc.)
 ///
 /// [`peek()`]: PeekingIter::peek()
+/// [`peek_nth()`]: PeekingIter::peek_nth()
+/// [`next_while()`]: PeekingIter::next_while()
 /// [`itertools::MultiPeek`]:
 /// https://docs.rs/itertools/latest/itertools/structs/struct.MultiPeek.html
 pub struct PeekingIter<I> {
@@ -29,7 +34,7 @@ impl<I: Iterator + Clone> PeekingIter<I> {
         }
     }
 
-    /// Returns the next item in the inner iterator.
+    /// Returns the next item in the iterator.
     ///
     /// Resets the peeking iterator.
     pub fn next(&mut self) -> Option<I::Item> {
@@ -38,7 +43,7 @@ impl<I: Iterator + Clone> PeekingIter<I> {
         self.iter.next()
     }
 
-    /// Peeks the next item in the inner iterator.
+    /// Peeks the next item in the iterator.
     ///
     /// Subsequent calls return subsequent items.
     ///
@@ -71,7 +76,7 @@ impl<I: Iterator + Clone> PeekingIter<I> {
             .and_then(|n1| (0..n1).flat_map(|_| self.peek()).last())
     }
 
-    /// Advances the base iterator to the be aligned with the peeking one.
+    /// Advances the inner iterator to the be aligned with the peeking one.
     ///
     /// ```rust
     /// # use peeking_iter::PeekingIter;
@@ -91,7 +96,7 @@ impl<I: Iterator + Clone> PeekingIter<I> {
         }
     }
 
-    /// Rewind the peeking iterator to align with the base one.
+    /// Rewind the peeking iterator to align with the inner.
     ///
     /// ```rust
     /// # use peeking_iter::PeekingIter;
@@ -108,8 +113,8 @@ impl<I: Iterator + Clone> PeekingIter<I> {
         self.peeking = None;
     }
 
-    /// Returns a `Vec<I::Item>` containing all continuous elements that the
-    /// predicate returns `true` for.
+    /// Returns a `Vec<T>` containing all continuous elements that satisfy the
+    /// predicate.
     ///
     /// ```rust
     /// # use peeking_iter::PeekingIter;
@@ -178,7 +183,7 @@ impl<I: Iterator + Clone> PeekingIter<I> {
         result
     }
 
-    /// Consumes `self` and returns the inner (base) iterator.
+    /// Consumes `self` and returns the inner iterator.
     ///
     /// ```rust
     /// # use peeking_iter::PeekingIter;
