@@ -1,5 +1,2 @@
-mod peeking;
-mod parser;
-
-pub use peeking::PeekingIter;
-pub use parser::Parser;
+pub mod peeking;
+pub mod parser;

@@ -5,8 +5,10 @@
 ///
 /// The inner iterator is required to implement [`Clone`].
 ///
+/// Also see [`Peeking`] for more detailed documentation of most methods.
+///
 /// # Performance
-/// It you don't call [`peek()`] at all, this is just as performant as the
+/// If you don't call [`peek()`] at all, this is just as performant as the
 /// original iterator.
 ///
 /// When using [`peek()`], this adapter is ~1.5x faster than
@@ -25,30 +27,19 @@ pub struct PeekingIter<I> {
     peeking: Option<I>,
 }
 
-impl<I: Iterator + Clone> PeekingIter<I> {
-    /// Wraps the given iterator.
-    pub fn new(iter: I) -> Self {
-        Self {
-            iter,
-            peeking: None,
-        }
-    }
-
-    /// Returns the next item in the iterator.
-    ///
-    /// Resets the peeking iterator.
-    pub fn next(&mut self) -> Option<I::Item> {
-        self.peeking = None;
-
-        self.iter.next()
-    }
-
+/// Enables peeking functionality.
+///
+/// Requires the type to implement [`Iterator`] as well as `peek()`,
+/// `advance_to_peeked()`, and `rewind_peeking()`.
+///
+/// Implemented by default on [`PeekingIter`] and [`Parser`](crate::Parser).
+pub trait Peeking: Iterator {
     /// Peeks the next item in the iterator.
     ///
     /// Subsequent calls return subsequent items.
     ///
     /// ```rust
-    /// # use peeking_iter::PeekingIter;
+    /// # use peeking_iter::peeking::{PeekingIter, Peeking};
     /// let mut it = PeekingIter::new(0..=2);
     ///
     /// assert_eq!(it.next(), Some(0));
@@ -58,30 +49,12 @@ impl<I: Iterator + Clone> PeekingIter<I> {
     /// assert_eq!(it.peek(), Some(2));
     /// assert_eq!(it.peek(), None);
     /// ```
-    pub fn peek(&mut self) -> Option<I::Item> {
-        self.peeking.get_or_insert_with(|| self.iter.clone()).next()
-    }
-
-    /// Peek the `n`th value in the iterator.
-    ///
-    /// ```rust
-    /// # use peeking_iter::PeekingIter;
-    /// let mut it = PeekingIter::new(0..=2);
-    ///
-    /// assert_eq!(it.peek_nth(2), Some(2));
-    /// assert_eq!(it.next(), Some(0));
-    /// ```
-    pub fn peek_nth(&mut self, n: usize) -> Option<I::Item> {
-        self.peeking
-            .get_or_insert_with(|| self.iter.clone())
-            .skip(n)
-            .next()
-    }
+    fn peek(&mut self) -> Option<Self::Item>;
 
     /// Advances the inner iterator to the be aligned with the peeking one.
     ///
     /// ```rust
-    /// # use peeking_iter::PeekingIter;
+    /// # use peeking_iter::peeking::{PeekingIter, Peeking};
     /// let mut it = PeekingIter::new(0..=2);
     ///
     /// assert_eq!(it.peek(), Some(0));
@@ -92,16 +65,12 @@ impl<I: Iterator + Clone> PeekingIter<I> {
     /// assert_eq!(it.next(), Some(2));
     /// assert_eq!(it.next(), None);
     /// ```
-    pub fn advance_to_peeked(&mut self) {
-        if let Some(ref peeking) = self.peeking {
-            self.iter = peeking.clone();
-        }
-    }
+    fn advance_to_peeked(&mut self);
 
     /// Rewind the peeking iterator to align with the inner.
     ///
     /// ```rust
-    /// # use peeking_iter::PeekingIter;
+    /// # use peeking_iter::peeking::{PeekingIter, Peeking};
     /// let mut it = PeekingIter::new(0..=2);
     ///
     /// assert_eq!(it.peek(), Some(0));
@@ -111,22 +80,37 @@ impl<I: Iterator + Clone> PeekingIter<I> {
     ///
     /// assert_eq!(it.peek(), Some(0));
     /// ```
-    pub fn rewind_peeking(&mut self) {
-        self.peeking = None;
+    fn rewind_peeking(&mut self);
+
+    /// Peek the `n`th value in the iterator.
+    ///
+    /// ```rust
+    /// # use peeking_iter::peeking::{PeekingIter, Peeking};
+    /// let mut it = PeekingIter::new(0..=2);
+    ///
+    /// assert_eq!(it.peek_nth(2), Some(2));
+    /// assert_eq!(it.next(), Some(0));
+    /// ```
+    fn peek_nth(&mut self, n: usize) -> Option<Self::Item> {
+        for _ in 0..n {
+            self.peek();
+        }
+
+        self.peek()
     }
 
     /// Returns a `Vec<T>` containing all continuous elements that satisfy the
     /// predicate.
     ///
     /// ```rust
-    /// # use peeking_iter::PeekingIter;
+    /// # use peeking_iter::peeking::{PeekingIter, Peeking};
     /// let mut it = PeekingIter::new(0..=3);
     ///
     /// assert_eq!(it.next_while(|x| *x < 2), vec![0, 1]);
     /// assert_eq!(it.peek(), Some(2));
     /// assert_eq!(it.next(), Some(2));
     /// ```
-    pub fn next_while<F: Fn(&I::Item) -> bool>(&mut self, pred: F) -> Vec<I::Item> {
+    fn next_while<F: Fn(&Self::Item) -> bool>(&mut self, pred: F) -> Vec<Self::Item> {
         let mut result = vec![];
 
         // If `peeking` had already diverged, bring it back
@@ -151,14 +135,14 @@ impl<I: Iterator + Clone> PeekingIter<I> {
         result
     }
 
-    /// Like [`next_while()`](Self::next_while()), except consumes the first
+    /// Like [`next_while()`](Peeking::next_while()), except consumes the first
     /// element that doesn't suffice (without returning it).
     ///
     /// Doesn't [`peek()`](Self::peek()) at all, so it is faster than
     /// [`next_while()`](Self::next_while()).
     ///
     /// ```rust
-    /// # use peeking_iter::PeekingIter;
+    /// # use peeking_iter::peeking::{PeekingIter, Peeking};
     /// let mut it = PeekingIter::new(0..=3);
     ///
     /// assert_eq!(it.next_while1(|x| *x < 2), vec![0, 1]);
@@ -166,7 +150,7 @@ impl<I: Iterator + Clone> PeekingIter<I> {
     /// assert_eq!(it.next(), Some(3));
     /// ```
     /// Note the `Some(3)`, instead of `Some(2)`.
-    pub fn next_while1<F: Fn(&I::Item) -> bool>(&mut self, pred: F) -> Vec<I::Item> {
+    fn next_while1<F: Fn(&Self::Item) -> bool>(&mut self, pred: F) -> Vec<Self::Item> {
         let mut result = vec![];
 
         loop {
@@ -184,17 +168,59 @@ impl<I: Iterator + Clone> PeekingIter<I> {
 
         result
     }
+}
+
+/// Allows converting any iterator to a peeking one (typically by wrapping around it).
+pub trait ToPeeking
+where Self: Sized {
+    fn to_peeking(self) -> PeekingIter<Self>;
+}
+
+impl<I: Iterator> PeekingIter<I> {
+    /// Wraps the given iterator.
+    pub fn new(iter: I) -> Self {
+        Self {
+            iter,
+            peeking: None,
+        }
+    }
+
+    /// Returns the next item in the iterator.
+    ///
+    /// Resets the peeking iterator.
+    pub fn next(&mut self) -> Option<I::Item> {
+        self.peeking = None;
+
+        self.iter.next()
+    }
 
     /// Consumes `self` and returns the inner iterator.
-    ///
-    /// ```rust
-    /// # use peeking_iter::PeekingIter;
-    /// let mut it = PeekingIter::new(0..=2);
-    ///
-    /// assert_eq!(PeekingIter::into_inner(it), 0..=2);
-    /// ```
     pub fn into_inner(value: Self) -> I {
         value.iter
+    }
+}
+
+impl<I: Iterator + Clone> Peeking for PeekingIter<I> {
+    fn peek(&mut self) -> Option<Self::Item> {
+        self.peeking.get_or_insert_with(|| self.iter.clone()).next()
+    }
+
+    fn advance_to_peeked(&mut self) {
+        if let Some(ref peeking) = self.peeking {
+            self.iter = peeking.clone();
+        }
+    }
+
+    fn rewind_peeking(&mut self) {
+        self.peeking = None;
+    }
+
+    // OPTIM?: Potentially more optimal implementation?
+    fn peek_nth(&mut self, n: usize) -> Option<I::Item> {
+        self.peeking
+            .get_or_insert_with(|| self.iter.clone())
+            .skip(n)
+            .next()
     }
 }
 
@@ -204,12 +230,6 @@ impl<I: Iterator + Clone> Iterator for PeekingIter<I> {
     fn next(&mut self) -> Option<Self::Item> {
         PeekingIter::next(self)
     }
-}
-
-/// Allows converting any iterator to a peeking one (typically by wrapping around it).
-pub trait ToPeeking
-where Self: Sized {
-    fn to_peeking(self) -> PeekingIter<Self>;
 }
 
 impl<I: Iterator + Clone> ToPeeking for I {
