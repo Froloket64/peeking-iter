@@ -1,3 +1,5 @@
+//! Parsing-specific iterator, with full peeking support.
+
 use crate::peeking::{PeekingIter, Peeking};
 
 /// An iterator implementing [`Peeking`], but designed specifically for parsing

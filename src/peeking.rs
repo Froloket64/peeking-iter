@@ -1,3 +1,5 @@
+//! Main iterator type and traits that enable peeking.
+
 /// Iterator adapter that enables infinitely-deep peeking.
 ///
 /// First call to [`peek()`] returns the next element, further calls
