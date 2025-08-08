@@ -1,10 +1,10 @@
 //! A fast and simple iterator adapter that allows peeking with any depth:
 //!
 //! ```rust
-//! use peeking_iter::PeekingIter
+//! use peeking_iter::peeking::*;
 //!
 //! fn main() {
-//!     let it = PeekingIter::new(0..=2);
+//!     let mut it = PeekingIter::new(0..=2);
 //!
 //!     assert_eq!(it.next(), Some(0));
 //!     assert_eq!(it.peek(), Some(1));
