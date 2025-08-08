@@ -4,7 +4,7 @@ peeking-iter
 A fast and simple iterator adapter that allows peeking with any depth:
 
 ```rust
-use peeking_iter::PeekingIter
+use peeking_iter::peeking::PeekingIter;
 
 fn main() {
     let it = PeekingIter::new(0..=2);
