@@ -1,6 +1,6 @@
 use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
 use itertools::Itertools;
-use peeking_iter::PeekingIter;
+use peeking_iter::peeking::*;
 use rand::random;
 use std::iter;
 
