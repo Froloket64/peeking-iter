@@ -19,5 +19,5 @@
 //! - ~1.5x faster than itertools' `MultiPeek`
 //! - Has useful methods initially designed with lexing and parsing in mind (see `Parser`)
 
-pub mod peeking;
 pub mod parser;
+pub mod peeking;

@@ -1,6 +1,6 @@
 //! Parsing-specific iterator, with full peeking support.
 
-use crate::peeking::{PeekingIter, Peeking};
+use crate::peeking::{Peeking, PeekingIter};
 
 /// An iterator implementing [`Peeking`], but designed specifically for parsing
 /// string input.
@@ -113,13 +113,16 @@ impl<I: Iterator<Item = char> + Clone> Iterator for Parser<I> {
 
 #[cfg(test)]
 mod tests {
-    use crate::peeking::Peeking;
     use crate::parser::Parser;
+    use crate::peeking::Peeking;
 
     fn next_while() {
         let mut it = Parser::new("ABc".chars());
 
-        assert_eq!(it.next_while(|c| c.is_uppercase()), "AB".chars().collect::<Vec<_>>());
+        assert_eq!(
+            it.next_while(|c| c.is_uppercase()),
+            "AB".chars().collect::<Vec<_>>()
+        );
         assert_eq!(it.peek(), Some('c'));
         assert_eq!(it.next(), Some('c'));
     }

@@ -174,7 +174,9 @@ pub trait Peeking: Iterator {
 
 /// Allows converting any iterator to a peeking one (typically by wrapping around it).
 pub trait ToPeeking
-where Self: Sized {
+where
+    Self: Sized,
+{
     fn to_peeking(self) -> PeekingIter<Self>;
 }
 
